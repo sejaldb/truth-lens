@@ -8,7 +8,72 @@ import UrlDetectTab from "@/components/UrlDetectTab";
 import WebcamTab from "@/components/WebcamTab";
 import ScreenShareTab from "@/components/ScreenShareTab";
 
+// src/pages/Index.tsx
+import { motion } from "framer-motion";
+import { Shield, Image, Film, Link, Camera, Monitor } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import AnimatedBackground from "@/components/AnimatedBackground";
+import { useState } from "react";
+import { BASE_URL } from "@/lib/api";
+
 const Index = () => {
+  // Image tab state
+  const [imageResult, setImageResult] = useState<any>(null);
+  const handleImage = async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await fetch(`${BASE_URL}/detect-image`, { method: "POST", body: formData });
+    const data = await res.json();
+    setImageResult(data);
+  };
+
+  // Video tab state
+  const [videoResult, setVideoResult] = useState<any>(null);
+  const handleVideo = async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await fetch(`${BASE_URL}/detect-video`, { method: "POST", body: formData });
+    const data = await res.json();
+    setVideoResult(data);
+  };
+
+  // URL tab state
+  const [url, setUrl] = useState("");
+  const [urlResult, setUrlResult] = useState<any>(null);
+  const handleUrl = async () => {
+    const res = await fetch(`${BASE_URL}/detect-url`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url }),
+    });
+    const data = await res.json();
+    setUrlResult(data);
+  };
+
+  // Webcam tab state
+  const [webcamResult, setWebcamResult] = useState<any>(null);
+  const handleWebcamFrame = async (base64Frame: string) => {
+    const res = await fetch(`${BASE_URL}/detect-camera-json`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ frame: base64Frame }),
+    });
+    const data = await res.json();
+    setWebcamResult(data);
+  };
+
+  // Screen share tab state
+  const [screenResult, setScreenResult] = useState<any>(null);
+  const handleScreenFrame = async (base64Frame: string) => {
+    const res = await fetch(`${BASE_URL}/detect-screen-json`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ frame: base64Frame }),
+    });
+    const data = await res.json();
+    setScreenResult(data);
+  };
+
   return (
     <div className="relative min-h-screen">
       <AnimatedBackground />
@@ -64,20 +129,37 @@ const Index = () => {
             </TabsList>
 
             <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-6">
+              {/* Image Tab */}
               <TabsContent value="image" className="mt-0">
-                <ImageUploadTab />
+                <input type="file" accept="image/png, image/jpeg" onChange={(e) => e.target.files && handleImage(e.target.files[0])} />
+                {imageResult && <p>Result: {imageResult.result}, Confidence: {imageResult.confidence}</p>}
               </TabsContent>
+
+              {/* Video Tab */}
               <TabsContent value="video" className="mt-0">
-                <VideoUploadTab />
+                <input type="file" accept="video/mp4" onChange={(e) => e.target.files && handleVideo(e.target.files[0])} />
+                {videoResult && <p>Result: {videoResult.result}, Confidence: {videoResult.confidence}</p>}
               </TabsContent>
+
+              {/* URL Tab */}
               <TabsContent value="url" className="mt-0">
-                <UrlDetectTab />
+                <input type="text" placeholder="Enter image/video URL" value={url} onChange={(e) => setUrl(e.target.value)} />
+                <button onClick={handleUrl}>Detect</button>
+                {urlResult && <p>Result: {urlResult.result}, Confidence: {urlResult.confidence}</p>}
               </TabsContent>
+
+              {/* Camera Tab */}
               <TabsContent value="camera" className="mt-0">
-                <WebcamTab />
+                {/* Replace this with actual webcam capture code */}
+                <button onClick={() => handleWebcamFrame("base64-frame-example")}>Detect Webcam Frame</button>
+                {webcamResult && <p>Result: {webcamResult.result}, Confidence: {webcamResult.confidence}</p>}
               </TabsContent>
+
+              {/* Screen Tab */}
               <TabsContent value="screen" className="mt-0">
-                <ScreenShareTab />
+                {/* Replace this with actual screen capture code */}
+                <button onClick={() => handleScreenFrame("base64-frame-example")}>Detect Screen Frame</button>
+                {screenResult && <p>Result: {screenResult.result}, Confidence: {screenResult.confidence}</p>}
               </TabsContent>
             </div>
           </Tabs>
@@ -90,7 +172,7 @@ const Index = () => {
           transition={{ delay: 0.8 }}
           className="text-center text-xs text-muted-foreground/50 mt-12 font-mono"
         >
-          DeepGuard v1.0 — Prototype with simulated detection
+          DeepGuard v1.0 — Prototype with live backend integration
         </motion.p>
       </div>
     </div>
